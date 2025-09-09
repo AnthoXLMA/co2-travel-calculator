@@ -1,0 +1,81 @@
+/* index.css */
+
+/* Tailwind base */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Styles for a premium travel agency look */
+:root {
+  --primary-color: #1e3a3f; /* Bleu-vert foncé, lisible sur fond blanc */
+  --secondary-color: #f97316; /* Orange brûlé, pour accents et boutons */
+  --accent-color: #fbbf24; /* Jaune doux, lumière du matin */
+  --background-gradient: linear-gradient(135deg, #ffedd5, #ffffff); /* Dégradé aube/coucher de soleil */
+  --card-bg: #ffffff; /* cartes blanches pour contraste */
+  --shadow-color: rgba(0,0,0,0.15); /* ombre douce */
+  --border-radius: 1rem;
+}
+
+
+body {
+  @apply font-sans bg-gradient-to-br from-blue-50 to-white;
+  background: var(--background-gradient);
+  color: var(--primary-color);
+}
+
+h1, h2 {
+  @apply font-bold text-gray-900;
+}
+
+h1 {
+  @apply text-3xl md:text-4xl mb-6 text-center;
+}
+
+h2 {
+  @apply text-xl mb-4;
+}
+
+/* Card styling for all sections */
+.card {
+  @apply bg-white p-6 rounded-2xl shadow-lg mb-6 transition-transform transform hover:scale-105;
+  background-color: var(--card-bg);
+  box-shadow: 0 10px 20px var(--shadow-color);
+  border-radius: var(--border-radius);
+}
+
+/* Inputs styling */
+input, select {
+  @apply border border-gray-300 rounded-lg p-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all;
+}
+
+/* Button styling */
+button {
+  @apply bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow hover:bg-blue-500 transition-colors;
+}
+
+/* Total result styling */
+.result {
+  @apply bg-gradient-to-r from-green-100 to-blue-50 p-6 rounded-2xl shadow-xl text-center transition-transform transform hover:scale-105;
+}
+
+.result p {
+  @apply text-lg;
+}
+
+.result .total {
+  @apply mt-4 text-2xl font-bold text-green-700;
+}
+
+/* Responsive grids */
+.grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+/* Subtle text colors */
+.text-secondary {
+  @apply text-gray-600;
+}
