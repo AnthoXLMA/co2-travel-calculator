@@ -27,6 +27,10 @@ export default function CO2Context({ totalCO2, transportMode, accomType, diet })
 
   // Calcul nombre d'arbres nécessaires
   const treesNeeded = Math.ceil(totalCO2 / co2PerTree);
+    const compensateCO2 = () => {
+    const url = `https://www.ecologi.com/donate?amount=${treesNeeded*5}`; // 5€/arbre exemple
+    window.open(url, "_blank");
+  };
 
   return (
     <div className="mt-6 p-6 rounded-3xl bg-gradient-to-r from-yellow-50 via-white to-green-50 shadow-lg space-y-6">
@@ -50,6 +54,12 @@ export default function CO2Context({ totalCO2, transportMode, accomType, diet })
         </div>
         <div className="p-4 bg-white rounded-xl shadow hover:shadow-md transition-shadow col-span-full text-center font-semibold text-green-700">
           🌳 Pour compenser ce voyage, plantez environ <strong>{treesNeeded}</strong> arbres. <p>Calcul basé sur une absorption de Co2 de 10 kg/an.</p>
+          <button
+            className="bg-green-700 text-white px-6 py-2 rounded-xl mt-2"
+            onClick={compensateCO2}
+          >
+            Compensez votre CO2
+          </button>
         </div>
       </div>
 
