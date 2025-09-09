@@ -7,6 +7,10 @@ import LoadGoogleMaps from "./components/LoadGoogleMaps";
 import { LoadScript } from '@react-google-maps/api';
 import CityInput from './components/CityInput'; // adapte le chemin selon ton projet
 import CO2Context from './components/CO2Context';
+import ProjectsDirectory from "./components/ProjectsDirectory";
+// import HelpBeesButton from "./components/HelpBeesButton";
+import CO2CalculationDetails from "./components/CO2CalculationDetails";
+
 
 // Facteurs CO2
 const DEFAULT_FACTORS = {
@@ -210,8 +214,13 @@ export default function App() {
             activitiesState={activitiesState}
             setActivitiesState={setActivitiesState}
           />
-
         {/* Résultat final */}
+        <button
+          className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl block mx-auto"
+          onClick={handleCalculate}
+        >
+          Calculer le CO2 total
+        </button>
         {totalResult && (
           <div className="mt-6 bg-green-50 border border-green-200 rounded-xl p-4 text-center">
             <p><strong>Transport:</strong> {(totalResult?.transport ?? 0).toFixed(1)} kg CO2e</p>
@@ -223,14 +232,12 @@ export default function App() {
             </p>
           </div>
         )}
-
-
-        <button
-          className="mt-6 bg-green-600 text-white px-6 py-3 rounded-xl block mx-auto"
-          onClick={handleCalculate}
-        >
-          Calculer le CO2 total
-        </button>
+        <CO2Context
+          totalCO2={totalResult?.total}
+          transportMode={transportMode}
+          accomType={accomType}
+          diet={diet}
+        />
       </div>
       <CO2Context
         totalCO2={totalResult?.total}
@@ -253,7 +260,7 @@ export default function App() {
       >
         Rechercher des vols éco-friendly
       </button>
-
+      <ProjectsDirectory />
       <button
         className="bg-orange-600 text-white px-4 py-2 rounded"
         onClick={() => {
