@@ -10,6 +10,7 @@ import CO2Context from './components/CO2Context';
 import ProjectsDirectory from "./components/ProjectsDirectory";
 // import HelpBeesButton from "./components/HelpBeesButton";
 import CO2CalculationDetails from "./components/CO2CalculationDetails";
+import { Autocomplete } from "@react-google-maps/api";
 
 
 // Facteurs CO2
