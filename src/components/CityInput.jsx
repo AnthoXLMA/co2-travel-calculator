@@ -1,4 +1,6 @@
 import React, { useEffect, useRef } from "react";
+import { Autocomplete } from "@react-google-maps/api";
+
 
 export default function CityInput({ value, onChange }) {
   const inputRef = useRef(null);
@@ -44,3 +46,38 @@ export default function CityInput({ value, onChange }) {
     />
   );
 }
+
+
+// import React, { useState } from "react";
+// // import { Autocomplete } from "@react-google-maps/api";
+// import Autocomplete from './Autocomplete';
+
+
+// export default function CityInput({ value, onChange }) {
+//   const [autocomplete, setAutocomplete] = useState(null);
+
+//   const handleLoad = (auto) => setAutocomplete(auto);
+
+//   const handlePlaceChanged = () => {
+//     if (autocomplete) {
+//       const place = autocomplete.getPlace();
+//       onChange(place.formatted_address || "");
+//     }
+//   };
+
+//   return (
+//     <Autocomplete
+//       onLoad={handleLoad}
+//       onPlaceChanged={handlePlaceChanged}
+//       options={{ types: ["(cities)"] }}
+//     >
+//       <input
+//         type="text"
+//         placeholder="Entrez une ville"
+//         value={value}
+//         onChange={(e) => onChange(e.target.value)}
+//         className="border p-2 rounded-xl w-full"
+//       />
+//     </Autocomplete>
+//   );
+// }

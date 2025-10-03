@@ -1,0 +1,25 @@
+{
+  "name": "functions",
+  "version": "1.0.0",
+  "description": "Backend Express pour Firebase Functions",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.1",
+    "dotenv": "^16.0.3",
+    "cors": "^2.8.5",
+    "firebase-functions": "^4.3.0",
+    "firebase-admin": "^11.10.0"
+  },
+  "engines": {
+  "node": "18"
+  }
+}

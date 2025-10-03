@@ -4,14 +4,14 @@ import Accommodation from "./components/Accommodation";
 import Food from "./components/Food";
 import Activities, { computeActivitiesCO2 } from "./components/Activities";
 import LoadGoogleMaps from "./components/LoadGoogleMaps";
-import { LoadScript } from '@react-google-maps/api';
-import CityInput from './components/CityInput'; // adapte le chemin selon ton projet
+// import { LoadScript } from '@react-google-maps/api';
+import CityInput from './components/CityInput';
 import CO2Context from './components/CO2Context';
 import ProjectsDirectory from "./components/ProjectsDirectory";
 // import HelpBeesButton from "./components/HelpBeesButton";
 import CO2CalculationDetails from "./components/CO2CalculationDetails";
-import { Autocomplete } from "@react-google-maps/api";
-
+import app from "./firebase";
+import Autocomplete from './components/Autocomplete';
 
 // Facteurs CO2
 const DEFAULT_FACTORS = {
@@ -142,24 +142,20 @@ export default function App() {
     setTotalResult(result);
   };
   return (
+
     <div className="min-h-screen bg-gradient-to-b from-blue-50 via-white to-green-50 p-6">
       <div className="container mx-auto max-w-6xl space-y-10">
         <h1 className="text-5xl font-extrabold text-center text-blue-900 tracking-tight">
           Co2 Calc
         </h1>
-          <LoadScript
-            googleMapsApiKey={googleMapsApiKey}
-            libraries={['places']}
-          >
-            <CityInput
-              value={legs[0].from} // par exemple
-              onChange={(val) => {
-                const newLegs = [...legs];
-                newLegs[0].from = val;
-                setLegs(newLegs);
-              }}
-            />
-          </LoadScript>
+{/*        <CityInput
+          value={legs[0].from}
+          onChange={(val) => {
+            const newLegs = [...legs];
+            newLegs[0].from = val;
+            setLegs(newLegs);
+          }}
+        />*/}
         {/* Blocs */}
         <Transport
           legs={legs}
