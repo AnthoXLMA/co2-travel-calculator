@@ -6,7 +6,6 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 
 dotenv.config();
-console.log("Google API key loaded:", process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

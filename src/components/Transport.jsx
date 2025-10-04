@@ -1,15 +1,7 @@
-// Transport.jsx
-import React from "react";
+// src/components/Transport.jsx
+import React, { useState, useEffect } from "react";
 import CityInput from "./CityInput";
-
-// Facteurs CO2
-const DEFAULT_FACTORS = {
-  flight_short: 0.15,
-  flight_long: 0.11,
-  train: 0.035,
-  car_petrol: 0.19,
-  car_electric: 0.05,
-};
+import { DEFAULT_FACTORS } from "./factors";
 
 export default function Transport({
   legs,
@@ -27,77 +19,90 @@ export default function Transport({
     return isNaN(n) ? 0 : n;
   };
 
-  // Ajouter / supprimer une étape
-  const addLeg = () => setLegs([...legs, { from: "", to: "", distance: 0 }]);
-  const removeLeg = (index) => setLegs(legs.filter((_, i) => i !== index));
+  // Ajouter / supprimer des étapes
+  const addLeg = () =>
+    setLegs([...legs, { id: Date.now(), from: "", to: "", distance: 0 }]);
+  const removeLeg = (id) => setLegs(legs.filter((leg) => leg.id !== id));
 
-  const googleMapsApiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+  // --- Fonction pour récupérer la distance avec Google Maps ---
+  const updateLegDistance = async (index) => {
+    const leg = legs[index];
+    if (!leg.from || !leg.to || !window.google) return;
 
-  // ⚡ Fetch distance depuis backend
-  const fetchDistance = async (from, to) => {
-    if (!from || !to) return 0;
-    try {
-      const res = await fetch(
-        `http://localhost:5001/distance?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`
-      );
-      const data = await res.json();
-      if (
-        data.rows &&
-        data.rows[0] &&
-        data.rows[0].elements &&
-        data.rows[0].elements[0] &&
-        data.rows[0].elements[0].distance
-      ) {
-        return data.rows[0].elements[0].distance.value / 1000; // m → km
+    const service = new window.google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins: [leg.from],
+        destinations: [leg.to],
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      },
+      (response, status) => {
+        if (status === "OK") {
+          const dist = response.rows[0].elements[0].distance?.value / 1000 || 0;
+          setLegs((prev) => {
+            const newLegs = [...prev];
+            newLegs[index].distance = dist;
+            return newLegs;
+          });
+          recalcTransport();
+        } else {
+          console.error("Erreur DistanceMatrix:", status);
+        }
       }
-      return 0;
-    } catch (err) {
-      console.error("Erreur fetchDistance:", err);
-      return 0;
-    }
+    );
   };
 
-  // Mettre à jour une étape et recalculer distance
-  const updateLeg = async (index, field, value) => {
-    const newLegs = [...legs];
-    newLegs[index][field] = value;
+  // --- Recalcul du CO2 transport ---
+  const recalcTransport = () => {
+    const totalDistance = legs.reduce((sum, leg) => sum + toNum(leg.distance), 0);
+    const transport =
+      (DEFAULT_FACTORS[transportMode] || 0) *
+      totalDistance *
+      Math.max(1, toNum(passengers));
 
-    if (field === "from" || field === "to") {
-      const distance = await fetchDistance(newLegs[index].from, newLegs[index].to);
-      newLegs[index].distance = distance;
-    }
-
-    setLegs(newLegs);
-    recalcTransport(newLegs);
-  };
-
-  // Recalcul CO2 transport
-  const recalcTransport = (currentLegs) => {
-    const totalDistance = currentLegs.reduce((sum, leg) => sum + toNum(leg.distance), 0);
-    const transport = (DEFAULT_FACTORS[transportMode] || 0) * totalDistance * Math.max(1, toNum(passengers));
-
-    setTotalResult(prev => ({
+    setTotalResult((prev) => ({
       ...prev,
       transport,
-      total: transport + (prev.accommodation || 0) + (prev.food || 0) + (prev.activities || 0),
+      total:
+        transport +
+        (prev.accommodation || 0) +
+        (prev.food || 0) +
+        (prev.activitiesCO2 || 0),
     }));
   };
 
-  // Bouton calcul manuel
-  const handleCalculate = () => recalcTransport(legs);
+  // --- Charger Google Maps API si non présent ---
+  useEffect(() => {
+    if (window.google) return; // déjà chargé
+
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}&libraries=places`;
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   return (
     <div className="bg-white rounded-3xl shadow-2xl p-6 flex flex-col gap-4">
       <h2 className="text-2xl font-semibold text-blue-800">Transport</h2>
 
-      {/* Étapes */}
       {legs.map((leg, idx) => (
-        <div key={idx} className="flex flex-col md:flex-row gap-3 items-center">
+        <div key={leg.id} className="flex flex-col md:flex-row gap-3 items-center">
           <div className="flex-1 flex flex-col">
             <label className="text-sm text-gray-700">Départ</label>
             <CityInput
               value={leg.from}
-              onChange={(val) => updateLeg(idx, "from", val)}
+              onChange={(val) => {
+                setLegs((prev) => {
+                  const newLegs = [...prev];
+                  newLegs[idx].from = val;
+                  return newLegs;
+                });
+                updateLegDistance(idx);
+              }}
             />
           </div>
 
@@ -105,19 +110,26 @@ export default function Transport({
             <label className="text-sm text-gray-700">Arrivée</label>
             <CityInput
               value={leg.to}
-              onChange={(val) => updateLeg(idx, "to", val)}
+              onChange={(val) => {
+                setLegs((prev) => {
+                  const newLegs = [...prev];
+                  newLegs[idx].to = val;
+                  return newLegs;
+                });
+                updateLegDistance(idx);
+              }}
             />
           </div>
 
           <div className="w-24 text-center">
             <label className="text-sm text-gray-700">Distance</label>
-            <span>{typeof leg.distance === "number" ? leg.distance.toFixed(1) : "0.0"} km</span>
+            <span>{toNum(leg.distance).toFixed(1)} km</span>
           </div>
 
           {legs.length > 1 && (
             <button
               className="text-red-500 font-semibold mt-2 md:mt-0"
-              onClick={() => removeLeg(idx)}
+              onClick={() => removeLeg(leg.id)}
             >
               Supprimer
             </button>
@@ -125,7 +137,6 @@ export default function Transport({
         </div>
       ))}
 
-      {/* Ajouter une étape */}
       <button
         className="mt-3 bg-blue-600 text-white px-4 py-2 rounded-xl"
         onClick={addLeg}
@@ -133,7 +144,6 @@ export default function Transport({
         Ajouter une étape
       </button>
 
-      {/* Passagers */}
       <div className="mt-4">
         <label className="text-sm text-gray-700">Nombre de passagers</label>
         <input
@@ -142,12 +152,11 @@ export default function Transport({
           value={passengers}
           onChange={(e) => {
             setPassengers(e.target.value);
-            recalcTransport(legs);
+            recalcTransport();
           }}
         />
       </div>
 
-      {/* Mode de transport */}
       <div className="mt-4">
         <label className="text-sm text-gray-700">Mode de transport</label>
         <select
@@ -155,7 +164,7 @@ export default function Transport({
           value={transportMode}
           onChange={(e) => {
             setTransportMode(e.target.value);
-            recalcTransport(legs);
+            recalcTransport();
           }}
         >
           <option value="flight_short">Avion (court-courrier)</option>
@@ -165,14 +174,6 @@ export default function Transport({
           <option value="car_electric">Voiture électrique</option>
         </select>
       </div>
-
-      {/* Bouton calcul manuel */}
-      <button
-        className="mt-4 bg-green-600 text-white px-6 py-3 rounded-xl"
-        onClick={handleCalculate}
-      >
-        Calculer l'itinéraire
-      </button>
     </div>
   );
 }
