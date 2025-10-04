@@ -124,7 +124,7 @@ const computeTotal = useCallback(() => {
           🌅 CO₂ Journey Calculator
         </h1>
         <p className="text-center text-lg text-gray-600 max-w-2xl mx-auto">
-          Explorez votre impact carbone et trouvez des alternatives plus durables
+          Mesurez l’impact CO₂ de vos vacances.
         </p>
 
         {/* --- Sections --- */}
