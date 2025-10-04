@@ -32,32 +32,6 @@ export default function CityInput({ value, onChange, onPlaceSelected }) {
     [onChange]
   );
 
-  // Autocomplete Google Maps
-  // useEffect(() => {
-  //   if (!window.google || !window.google.maps || !inputRef.current) return;
-
-  //   const autocomplete = new window.google.maps.places.Autocomplete(inputRef.current, {
-  //     types: ["(cities)"],
-  //     componentRestrictions: { country: [] },
-  //   });
-
-  //   const listener = autocomplete.addListener("place_changed", () => {
-  //     const place = autocomplete.getPlace();
-  //     if (place && place.formatted_address) {
-  //       setLocalValue(place.formatted_address);
-  //       onChange(place.formatted_address);
-  //       if (onPlaceSelected) onPlaceSelected(place.formatted_address);
-  //     }
-  //   });
-
-  //   autocompleteRef.current = autocomplete;
-
-  //   return () => {
-  //     if (listener) window.google.maps.event.removeListener(listener);
-  //     autocompleteRef.current = null;
-  //   };
-  // }, [onChange, onPlaceSelected]);
-
   useEffect(() => {
   if (!window.google || !inputRef.current) return;
 
