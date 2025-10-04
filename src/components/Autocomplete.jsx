@@ -1,6 +1,7 @@
 import { useRef, useEffect } from "react";
 import useLoadGooglePlaces from "../hooks/useLoadGooglePlaces";
 
+
 export default function Autocomplete({ value, onChange }) {
   const inputRef = useRef(null);
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;

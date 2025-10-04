@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 
+
 // Définition des activités et facteurs CO2 (kg CO2e par unité)
 const ACTIVITIES = {
   low: [
