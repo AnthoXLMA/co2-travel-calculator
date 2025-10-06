@@ -5,6 +5,7 @@ import Food from "./components/Food";
 import Activities, { computeActivitiesCO2 } from "./components/Activities";
 import CityInput from "./components/CityInput";
 import CO2Context from "./components/CO2Context";
+import Co2Result from "./components/Co2Result";
 import ProjectsDirectory from "./components/ProjectsDirectory";
 import CO2CalculationDetails from "./components/CO2CalculationDetails";
 import { LoadScript } from "@react-google-maps/api";
@@ -50,13 +51,9 @@ export default function App() {
   const [poolLevel, setPoolLevel] = useState(0);
   const [hasBreakfast, setHasBreakfast] = useState(false);
   const [hasHalfBoard, setHasHalfBoard] = useState(false);
-  const [legs, setLegs] = useState([{ id: Date.now(), from: "", to: "", distance: 0 }]);
-
-  // Ajouter une étape
-  const addLeg = () => setLegs([...legs, { id: Date.now(), from: "", to: "", distance: 0 }]);
 
   // --- Transport ---
-  // const [legs, setLegs] = useState([{ from: "", to: "", distance: 0 }]);
+  const [legs, setLegs] = useState([{ id: Date.now(), from: "", to: "", distance: 0 }]);
   const [passengers, setPassengers] = useState(1);
   const [transportMode, setTransportMode] = useState("car_petrol");
 
@@ -67,59 +64,96 @@ export default function App() {
   // --- Activités ---
   const [activitiesState, setActivitiesState] = useState({});
 
+  // --- Détails pour le résumé ---
+  const [transportDetails, setTransportDetails] = useState({ legs });
+  const [accomDetails, setAccomDetails] = useState({ nights, accomType, numRooms, numGuests, airConLevel, poolLevel, hasBreakfast, hasHalfBoard });
+  const [mealsDetails, setMealsDetails] = useState({ diet, mealsPerDay });
+  const [activitiesDetails, setActivitiesDetails] = useState(activitiesState);
+
   // --- Résultat CO2 ---
   const [totalResult, setTotalResult] = useState({});
 
+  // Ajouter une étape
+  const addLeg = () => setLegs([...legs, { id: Date.now(), from: "", to: "", distance: 0 }]);
+
   // --- Calcul CO2 total ---
-const computeTotal = useCallback(() => {
-  const totalDistance = legs.reduce((sum, leg) => sum + toNum(leg.distance), 0);
-  const transport =
-    (DEFAULT_FACTORS[transportMode] || 0) * totalDistance * Math.max(1, toNum(passengers));
+  const computeTotal = useCallback(() => {
+    const totalDistance = legs.reduce((sum, leg) => sum + toNum(leg.distance), 0);
+    const transport =
+      (DEFAULT_FACTORS[transportMode] || 0) * totalDistance * Math.max(1, toNum(passengers));
 
-  const baseAccommodation =
-    (DEFAULT_FACTORS[accomType] || 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numRooms));
+    const baseAccommodation =
+      (DEFAULT_FACTORS[accomType] || 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numRooms));
 
-  const optionsAccommodation =
-    (airConLevel ? CO2_ADDITIONAL.airCon : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numRooms)) +
-    (poolLevel ? CO2_ADDITIONAL.pool : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numRooms)) +
-    (hasBreakfast ? CO2_ADDITIONAL.breakfast : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numGuests)) +
-    (hasHalfBoard ? CO2_ADDITIONAL.halfBoard : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numGuests));
+    const optionsAccommodation =
+      (airConLevel ? CO2_ADDITIONAL.airCon : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numRooms)) +
+      (poolLevel ? CO2_ADDITIONAL.pool : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numRooms)) +
+      (hasBreakfast ? CO2_ADDITIONAL.breakfast : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numGuests)) +
+      (hasHalfBoard ? CO2_ADDITIONAL.halfBoard : 0) * Math.max(0, toNum(nights)) * Math.max(1, toNum(numGuests));
 
-  const accommodation = baseAccommodation + optionsAccommodation;
+    const accommodation = baseAccommodation + optionsAccommodation;
 
-  const includedMeals = (hasBreakfast ? 1 : 0) + (hasHalfBoard ? 2 : 0);
-  const food = computeFoodCO2(diet, toNum(mealsPerDay), toNum(nights), includedMeals);
+    const includedMeals = (hasBreakfast ? 1 : 0) + (hasHalfBoard ? 2 : 0);
+    const food = computeFoodCO2(diet, toNum(mealsPerDay), toNum(nights), includedMeals);
 
-  const activitiesCO2 = computeActivitiesCO2(activitiesState);
+    const activitiesCO2 = computeActivitiesCO2(activitiesState);
 
-  const total = transport + accommodation + food + activitiesCO2;
-  return { transport, accommodation, food, activitiesCO2, total };
-}, [
-  legs,
-  transportMode,
-  passengers,
-  accomType,
-  nights,
-  numRooms,
-  numGuests,
-  airConLevel,
-  poolLevel,
-  hasBreakfast,
-  hasHalfBoard,
-  diet,
-  mealsPerDay,
-  activitiesState,
-]);
+    const total = transport + accommodation + food + activitiesCO2;
+    return { transport, accommodation, food, activitiesCO2, total };
+  }, [
+    legs,
+    transportMode,
+    passengers,
+    accomType,
+    nights,
+    numRooms,
+    numGuests,
+    airConLevel,
+    poolLevel,
+    hasBreakfast,
+    hasHalfBoard,
+    diet,
+    mealsPerDay,
+    activitiesState,
+  ]);
 
   // --- Mise à jour live ---
   useEffect(() => {
     setTotalResult(computeTotal());
-  }, [computeTotal]);
+    setTransportDetails({ legs, transportMode, passengers });
+    setAccomDetails({ nights, accomType, numRooms, numGuests, airConLevel, poolLevel, hasBreakfast, hasHalfBoard });
+    setMealsDetails({ diet, mealsPerDay });
+    setActivitiesDetails(activitiesState);
+  }, [
+    computeTotal,
+    legs,
+    transportMode,
+    passengers,
+    nights,
+    accomType,
+    numRooms,
+    numGuests,
+    airConLevel,
+    poolLevel,
+    hasBreakfast,
+    hasHalfBoard,
+    diet,
+    mealsPerDay,
+    activitiesState,
+  ]);
+
+  // --- Bouton calcul manuel ---
+  const handleCalculate = () => {
+    setTransportDetails({ legs, transportMode, passengers });
+    setAccomDetails({ nights, accomType, numRooms, numGuests, airConLevel, poolLevel, hasBreakfast, hasHalfBoard });
+    setMealsDetails({ diet, mealsPerDay });
+    setActivitiesDetails(activitiesState);
+    setTotalResult(computeTotal());
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#FDE2E4] via-[#FFF1E6] to-[#E2ECE9] text-gray-800">
       <div className="container mx-auto max-w-6xl space-y-12 py-12">
-        {/* Titre principal */}
         <h1 className="text-6xl font-extrabold text-center bg-gradient-to-r from-rose-500 via-orange-400 to-amber-500 bg-clip-text text-transparent tracking-tight drop-shadow-md">
           🌅 CO₂ Journey Calculator
         </h1>
@@ -127,7 +161,6 @@ const computeTotal = useCallback(() => {
           Mesurez l’impact CO₂ de vos vacances.
         </p>
 
-        {/* --- Sections --- */}
         <div className="grid gap-10">
           <Transport
             legs={legs}
@@ -176,18 +209,26 @@ const computeTotal = useCallback(() => {
           />
         </div>
 
-        {/* Bouton calcul manuel */}
         <div className="text-center">
           <button
             className="mt-8 bg-gradient-to-r from-rose-400 to-orange-400 hover:from-rose-500 hover:to-orange-500 text-white px-8 py-4 rounded-2xl text-lg font-semibold shadow-lg transition-all transform hover:scale-105"
-            onClick={() => setTotalResult(computeTotal())}
+            onClick={handleCalculate}
           >
             🔍 Calculer mon empreinte carbone
           </button>
         </div>
 
-        {/* Résultat CO2 */}
-        <div className="mt-10 bg-white/70 backdrop-blur-xl border border-rose-100 rounded-3xl shadow-2xl p-8 max-w-3xl mx-auto text-center">
+        {totalResult && totalResult.total > 0 && (
+          <Co2Result
+            totalResult={totalResult}
+            transportDetails={transportDetails}
+            accomDetails={accomDetails}
+            mealsDetails={mealsDetails}
+            activitiesDetails={activitiesDetails}
+          />
+        )}
+
+{/*        <div className="mt-10 bg-white/70 backdrop-blur-xl border border-rose-100 rounded-3xl shadow-2xl p-8 max-w-3xl mx-auto text-center">
           <h2 className="text-3xl font-bold text-rose-600 mb-4">Résultats</h2>
           <div className="grid md:grid-cols-2 gap-4 text-lg">
             <p><strong>🚗 Transport:</strong> {totalResult.transport?.toFixed(1) ?? 0} kg CO₂e</p>
@@ -198,9 +239,8 @@ const computeTotal = useCallback(() => {
           <p className="mt-6 text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600 drop-shadow-lg">
             🌍 Total : {totalResult.total?.toFixed(1) ?? 0} kg CO₂e
           </p>
-        </div>
+        </div>*/}
 
-        {/* Contexte et détails */}
         <CO2Context
           totalCO2={totalResult.total}
           transportMode={transportMode}
@@ -215,7 +255,6 @@ const computeTotal = useCallback(() => {
           diet={diet}
         />
 
-        {/* CTA Links */}
         <div className="mt-10 flex flex-wrap gap-6 justify-center">
           <button
             className="bg-gradient-to-r from-sky-400 to-blue-500 text-white px-6 py-3 rounded-2xl shadow-lg font-semibold hover:scale-105 transition-all"
